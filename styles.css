@@ -1,0 +1,70 @@
+/* styles.css */
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 20px;
+    padding: 20px;
+    background-color: #1f1f1f;
+    color: #ffffff;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #4CAF50;
+    border-bottom: 2px solid #4CAF50;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+h2 {
+    color: #4CAF50;
+}
+
+section {
+    margin-bottom: 30px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.contact-info {
+    color: #aaaaaa;
+}
+
+.work-experience {
+    border-top: 2px solid #4CAF50;
+    padding-top: 20px;
+}
+
+.skills,
+.certifications,
+.online-presence,
+.ongoing-learning {
+    margin-top: 20px;
+}
+
+.skills p,
+.certifications ul,
+.online-presence ul,
+.ongoing-learning ul {
+    line-height: 1.6;
+}
