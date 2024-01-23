@@ -2,17 +2,22 @@
 
 body {
     text-align: center;
+    background-image: url(images/image.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    padding: 50%;
     position: relative;
     font-family: system-ui;
     margin: 20px;
     padding: 20px;
     background-color: #000000;
     color: #f9f6ef;
-    right: -100%;
+    left: -100%;
     transition: 1s;
 }
 body.slide-in {
-    right: 0;
+    left: 0;
 }
 
 header {
@@ -34,11 +39,16 @@ h1.slide-in {
 }
 
 h1:hover {
+    text-decoration: transparent;
     transform: scale(1.25);
 }
 
 h2 {
     color: #007aff;
+}
+h2:hover {
+    color: #ff6600;
+    transform: scale(1.1);
 }
 
 section {
@@ -82,7 +92,7 @@ a:hover {
     border-radius: 10px;
 }
 .contact-info a:hover {
-    transform: scale(1.25);
+    transform: scale(1.02);
     background-color: white;
     color:#007aff
 }
