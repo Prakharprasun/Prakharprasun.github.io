@@ -1,20 +1,21 @@
 :root {
-    /* Terminal colors */
-    --bg: #0b0f12;
-    --fg: #cfd6dc;
-    --cursor: #e6edf3;
-    --accent: #8fbcd4;
-    --dim: #7a8691;
+    --bg: #485915;          /* LCD */
+    --fg: #0b0f06;          /* text */
+    --dim: #2f3b16;         /* boot / secondary text */
+    --accent: #1d260f;      /* commands / emphasis */
+    --cursor: #0b0f06;
 }
 
 body {
     margin: 0;
     height: 100vh;
-    background: #000;
+    background: #017398;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: "Courier New", Consolas, Monaco, monospace;
+
+    /* Courier is fallback only */
+    font-family: "IBM Plex Mono", "JetBrains Mono", Consolas, "Courier New", monospace;
     overflow: hidden;
 }
 
@@ -43,26 +44,23 @@ a:hover {
 }
 
 .terminal-screen {
+    font-weight: 500;
     position: absolute;
 
-    /* tightened to fit glass */
-    top: 15%;
-    left: 29%;
-    width: 46%;
-    height: 64%;
+    /* manually done */
+    top: 24%;
+    left: 34%;
+    width: 32%;
+    height: 53%;
 
-    border-radius: 4px;
+    border-radius: 2px;
 
-    background: radial-gradient(
-            circle at center,
-            var(--bg) 70%,
-            rgba(0, 0, 0, 0.85) 140%
-    );
-
+    background: var(--bg);
     color: var(--fg);
+
     font-size: 13px;
-    line-height: 1.5;
-    letter-spacing: 0.5px;
+    line-height: 1.45;
+    letter-spacing: 0.35px;
     padding: 14px 18px;
     box-sizing: border-box;
 
@@ -71,40 +69,40 @@ a:hover {
     overflow: hidden;
     z-index: 10;
 
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.6);
-    filter: contrast(1.05) saturate(0.95);
+    /* LCD depth */
+    box-shadow:
+            inset 0 0 6px rgba(0,0,0,0.3),
+            inset 0 0 18px rgba(0,0,0,0.25);
+
+    text-shadow:
+            0 0 0.6px rgba(0,0,0,0.25);
+
+    filter: contrast(0.98) saturate(0.95);
 }
 
+/* Subtle pixel grid */
 .terminal-screen::before {
     content: "";
     position: absolute;
     inset: 0;
-
-    background:
-            repeating-linear-gradient(
-                    to bottom,
-                    rgba(255, 255, 255, 0.02),
-                    rgba(255, 255, 255, 0.02) 1px,
-                    rgba(0, 0, 0, 0) 2px,
-                    rgba(0, 0, 0, 0) 3px
-            );
-
+    background-image:
+            linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 3px 3px;
     pointer-events: none;
     z-index: 1;
 }
 
+/* Edge darkening */
 .terminal-screen::after {
     content: "";
     position: absolute;
     inset: 0;
-
-    background:
-            radial-gradient(
-                    ellipse at center,
-                    transparent 60%,
-                    rgba(0, 0, 0, 0.55) 100%
-            );
-
+    background: radial-gradient(
+            circle at center,
+            transparent 60%,
+            rgba(0,0,0,0.35) 100%
+    );
     pointer-events: none;
     z-index: 2;
 }
@@ -131,13 +129,8 @@ a:hover {
     word-break: break-word;
 }
 
-.dim {
-    color: var(--dim);
-}
-
-.accent {
-    color: var(--accent);
-}
+.dim { color: var(--dim); }
+.accent { color: var(--accent); }
 
 .error-box {
     border-left: 2px solid var(--dim);
@@ -170,7 +163,7 @@ a:hover {
 .cursor {
     margin-left: 1px;
     color: var(--cursor);
-    animation: blink 1.1s steps(1) infinite;
+    animation: blink 1.2s steps(1) infinite;
 }
 
 @keyframes blink {
