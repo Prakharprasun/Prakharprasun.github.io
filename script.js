@@ -49,8 +49,6 @@ const state = {
     isLoaded: false
 };
 
-// ============ INITIALIZATION ============
-
 function init() {
     const startApp = () => {
         if (state.isLoaded) return;
@@ -78,8 +76,6 @@ function init() {
             </div>
         `;
     };
-
-    // Check if image is already loaded
     if (elements.image.complete && elements.image.naturalHeight !== 0) {
         startApp();
     } else {
@@ -113,8 +109,6 @@ function setupEventListeners() {
         requestAnimationFrame(updateInputDisplay);
     });
 }
-
-// ============ INPUT HANDLING ============
 
 function handleKeyDown(e) {
     switch (e.key) {
@@ -179,8 +173,6 @@ function updateInputDisplay() {
         before + '<span class="cursor">█</span>' + after;
 }
 
-// ============ BOOT SEQUENCE ============
-
 async function runBootSequence() {
     const sequence = [
         { text: '[boot] Initializing system...', delay: 500 },
@@ -199,8 +191,6 @@ async function runBootSequence() {
     elements.cmdInput.focus();
 }
 
-// ============ OUTPUT ============
-
 function printLine(html, className = '') {
     const div = document.createElement('div');
     div.className = `line ${className}`;
@@ -208,8 +198,6 @@ function printLine(html, className = '') {
     elements.output.appendChild(div);
     elements.output.scrollTop = elements.output.scrollHeight;
 }
-
-// ============ COMMAND EXECUTION ============
 
 async function executeCommand(rawCmd) {
     printLine(`> ${escapeHtml(rawCmd)}`);
@@ -266,8 +254,6 @@ async function executeCommand(rawCmd) {
     }
 }
 
-// ============ THEME HANDLING ============
-
 function handleThemeCommand(args) {
     const themeName = args[0]?.toLowerCase();
 
@@ -293,8 +279,6 @@ function applyTheme(name) {
         root.style.setProperty(`--${key}`, value);
     });
 }
-
-// ============ API COMMANDS ============
 
 async function fetchGitHubProjects() {
     await executeApiCommand(
@@ -382,8 +366,6 @@ async function executeApiCommand(apiFn, curlCmd, webUrl) {
     }
 }
 
-// ============ UTILITIES ============
-
 function escapeHtml(text) {
     if (!text) return '';
     return String(text)
@@ -397,7 +379,5 @@ function escapeHtml(text) {
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-// ============ START ============
 
 init();

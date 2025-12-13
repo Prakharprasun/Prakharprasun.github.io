@@ -6,8 +6,6 @@
     --cursor: #0b0f06;
 }
 
-/* ================= BASE ================= */
-
 body {
     margin: 0;
     height: 100vh;
@@ -24,8 +22,6 @@ a {
     text-decoration: underline;
 }
 
-/* ================= CRT ================= */
-
 .crt-container {
     position: relative;
     width: 100vw;
@@ -40,8 +36,6 @@ a {
     object-fit: contain;
     pointer-events: none;
 }
-
-/* ================= TERMINAL ================= */
 
 .terminal-screen {
     position: absolute;
@@ -86,8 +80,6 @@ a {
     pointer-events: none;
 }
 
-/* ================= OUTPUT ================= */
-
 .terminal-output {
     flex: 1;
     overflow-y: auto;
@@ -104,8 +96,6 @@ a {
 
 .dim { color: var(--dim); }
 .accent { color: var(--accent); }
-
-/* ================= INPUT (FIXED) ================= */
 
 .input-line {
     display: flex;
@@ -126,19 +116,16 @@ a {
     flex: 1;
 }
 
-/* Typed text + cursor live in same flow */
 .input-display {
     display: inline;
     white-space: pre;
 }
 
-/* Cursor behaves like a glyph, not a box */
 .cursor {
     color: var(--cursor);
     animation: blink 1.2s steps(1) infinite;
 }
 
-/* Real input is invisible but still focused */
 .hidden-input {
     position: absolute;
     opacity: 0;
@@ -151,8 +138,6 @@ a {
     0%, 50% { opacity: 1; }
     51%, 100% { opacity: 0; }
 }
-
-/* ================= MOBILE ================= */
 
 @media (max-width: 768px) {
     :root {
