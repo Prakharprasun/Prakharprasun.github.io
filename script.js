@@ -54,6 +54,7 @@ function init() {
         if (state.isLoaded) return;
         state.isLoaded = true;
         elements.container.style.opacity = '1';
+        positionTerminal();
         runBootSequence();
     };
 
@@ -76,18 +77,79 @@ function init() {
             </div>
         `;
     };
-    if (elements.image.complete && elements.image.naturalHeight !== 0) {
+
+    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+    if (isMobile) {
+        startApp();
+    } else if (elements.image.complete && elements.image.naturalHeight !== 0) {
         startApp();
     } else {
         elements.image.onload = startApp;
-        elements.image.onerror = handleImageError;
+        elements.image.onerror = () => {
+            console.warn('CRT image failed, continuing anyway');
+            startApp();
+        };
     }
 
+
     setupEventListeners();
+
+    window.addEventListener('resize', () => {
+        if (state.isLoaded) {
+            positionTerminal();
+        }
+    });
+}
+
+function positionTerminal() {
+    const terminal = elements.screen;
+
+    // mobile : full-screen terminal
+    if (window.matchMedia('(max-width: 768px)').matches) {
+        terminal.style.position = 'relative';
+        terminal.style.inset = '0';
+        terminal.style.width = '100%';
+        terminal.style.height = '100vh';
+        terminal.style.left = '';
+        terminal.style.top = '';
+        terminal.style.transform = 'none';
+        return;
+    }
+
+    // PC img-based positioning
+    const img = elements.image;
+    const wrapper = img.parentElement;
+
+    const imgRect = img.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+
+    const imgWidth = imgRect.width;
+    const imgHeight = imgRect.height;
+
+    const offsetLeft = imgRect.left - wrapperRect.left;
+    const offsetTop = imgRect.top - wrapperRect.top;
+
+    const terminalWidth = imgWidth * 0.33;
+    const terminalHeight = imgHeight * 0.54;
+
+    const terminalLeft = offsetLeft + (imgWidth - terminalWidth) / 2;
+    const terminalTop = offsetTop + (imgHeight - terminalHeight) / 2;
+
+    terminal.style.width = terminalWidth + 'px';
+    terminal.style.height = terminalHeight + 'px';
+    terminal.style.left = terminalLeft + 'px';
+    terminal.style.top = terminalTop + 'px';
+    terminal.style.transform = 'none';
+
+    const padding = Math.max(10, terminalWidth * 0.02);
+    const fontSize = Math.max(10, Math.min(13, terminalWidth * 0.022));
+
+    terminal.style.padding = padding + 'px';
+    terminal.style.fontSize = fontSize + 'px';
 }
 
 function setupEventListeners() {
-    // Focus input when clicking terminal
     elements.screen.addEventListener('click', () => elements.cmdInput.focus());
 
     // Update display on ANY change
@@ -187,7 +249,7 @@ async function runBootSequence() {
     }
 
     updateInputDisplay();
-    elements.inputLine.style.display = 'flex';
+    elements.inputLine.style.display = 'block';
     elements.cmdInput.focus();
 }
 
