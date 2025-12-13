@@ -182,9 +182,28 @@ a:hover {
 }
 
 @media (max-width: 768px) {
+
+    /* force Dracula theme on mobile */
+    :root {
+        --bg: #282a36;
+        --fg: #f8f8f2;
+        --cursor: #ff79c6;
+        --accent: #bd93f9;
+        --dim: #6272a4;
+    }
+
     body {
         background: var(--bg);
         align-items: flex-start;
+
+        /* Mobile-optimized */
+        font-family:
+                "JetBrains Mono",
+                "IBM Plex Mono",
+                "SF Mono",
+                "Roboto Mono",
+                Consolas,
+                monospace;
     }
 
     .crt-image {
@@ -196,9 +215,19 @@ a:hover {
         inset: 0;
         width: 100%;
         height: 100vh;
+
         border-radius: 0;
-        padding: 12px;
+        padding: 14px;
+
+        background: var(--bg);
+        color: var(--fg);
+
+        font-size: 13.5px;
+        line-height: 1.55;
+
         filter: none;
+        box-shadow: none;
+        text-shadow: none;
     }
 
     .terminal-screen::before,
@@ -206,3 +235,4 @@ a:hover {
         display: none;
     }
 }
+
