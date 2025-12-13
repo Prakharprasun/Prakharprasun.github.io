@@ -31,91 +31,155 @@ const THEMES = {
     }
 };
 
-const crtContainer = document.getElementById('crt-container');
-const crtImage = document.getElementById('crt-image');
-const terminalScreen = document.getElementById('terminal-screen');
-const outputDiv = document.getElementById('output');
-const inputLine = document.getElementById('input-line');
-const inputDisplay = document.getElementById('input-display');
-const cmdInput = document.getElementById('cmd-input');
+// DOM Elements
+const elements = {
+    container: document.getElementById('crt-container'),
+    image: document.getElementById('crt-image'),
+    screen: document.getElementById('terminal-screen'),
+    output: document.getElementById('output'),
+    inputLine: document.getElementById('input-line'),
+    inputDisplay: document.getElementById('input-display'),
+    cmdInput: document.getElementById('cmd-input')
+};
 
-let commandHistory = [];
-let historyIndex = -1;
-let isLoaded = false;
+// State
+const state = {
+    commandHistory: [],
+    historyIndex: -1,
+    isLoaded: false
+};
+
+// ============ INITIALIZATION ============
 
 function init() {
     const startApp = () => {
-        if (isLoaded) return;
-        isLoaded = true;
-        crtContainer.style.opacity = '1';
+        if (state.isLoaded) return;
+        state.isLoaded = true;
+        elements.container.style.opacity = '1';
         runBootSequence();
     };
 
-    const failLoudly = () => {
+    const handleImageError = () => {
         document.body.innerHTML = `
-      <div style="
-        height:100vh;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        align-items:center;
-        background:#000;
-        color:#ff3333;
-        font-family:monospace;
-        text-align:center;
-      ">
-        <h1 style="font-size:48px;margin-bottom:16px;">FATAL ERROR</h1>
-        <div>MISSING ASSET: CRT.png</div>
-        <div style="opacity:0.6;margin-top:8px;">SYSTEM HALTED</div>
-      </div>
-    `;
+            <div style="
+                height:100vh;
+                display:flex;
+                flex-direction:column;
+                justify-content:center;
+                align-items:center;
+                background:#000;
+                color:#ff3333;
+                font-family:monospace;
+                text-align:center;
+            ">
+                <h1 style="font-size:48px;margin-bottom:16px;">FATAL ERROR</h1>
+                <div>MISSING ASSET: CRT.png</div>
+                <div style="opacity:0.6;margin-top:8px;">SYSTEM HALTED</div>
+            </div>
+        `;
     };
 
-    if (crtImage.complete && crtImage.naturalHeight !== 0) {
+    // Check if image is already loaded
+    if (elements.image.complete && elements.image.naturalHeight !== 0) {
         startApp();
     } else {
-        crtImage.onload = startApp;
-        crtImage.onerror = failLoudly;
+        elements.image.onload = startApp;
+        elements.image.onerror = handleImageError;
     }
 
-    terminalScreen.addEventListener('click', () => cmdInput.focus());
-    cmdInput.addEventListener('input', updateInputDisplay);
+    setupEventListeners();
+}
 
-    cmdInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-            const cmd = cmdInput.value;
-            handleCommand(cmd);
-            cmdInput.value = '';
-            updateInputDisplay();
-            historyIndex = -1;
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            if (commandHistory.length) {
-                historyIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
-                cmdInput.value =
-                    commandHistory[commandHistory.length - 1 - historyIndex];
-                updateInputDisplay();
-            }
-        } else if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            if (historyIndex > 0) {
-                historyIndex--;
-                cmdInput.value =
-                    commandHistory[commandHistory.length - 1 - historyIndex];
-            } else {
-                historyIndex = -1;
-                cmdInput.value = '';
-            }
-            updateInputDisplay();
-        }
+function setupEventListeners() {
+    // Focus input when clicking terminal
+    elements.screen.addEventListener('click', () => elements.cmdInput.focus());
+
+    // Update display on ANY change
+    elements.cmdInput.addEventListener('input', () => {
+        requestAnimationFrame(updateInputDisplay);
+    });
+
+    elements.cmdInput.addEventListener('click', () => {
+        requestAnimationFrame(updateInputDisplay);
+    });
+
+    elements.cmdInput.addEventListener('keydown', handleKeyDown);
+
+    elements.cmdInput.addEventListener('keyup', () => {
+        requestAnimationFrame(updateInputDisplay);
+    });
+
+    elements.cmdInput.addEventListener('select', () => {
+        requestAnimationFrame(updateInputDisplay);
     });
 }
 
+// ============ INPUT HANDLING ============
+
+function handleKeyDown(e) {
+    switch (e.key) {
+        case 'Enter':
+            handleEnter();
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            navigateHistory(1);
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            navigateHistory(-1);
+            break;
+    }
+}
+
+function handleEnter() {
+    const cmd = elements.cmdInput.value.trim();
+    if (!cmd) return;
+
+    executeCommand(cmd);
+    elements.cmdInput.value = '';
+    updateInputDisplay();
+    state.historyIndex = -1;
+}
+
+function navigateHistory(direction) {
+    const { commandHistory, historyIndex } = state;
+
+    if (!commandHistory.length) return;
+
+    const newIndex = Math.max(
+        -1,
+        Math.min(historyIndex + direction, commandHistory.length - 1)
+    );
+
+    state.historyIndex = newIndex;
+
+    if (newIndex === -1) {
+        elements.cmdInput.value = '';
+    } else {
+        elements.cmdInput.value = commandHistory[commandHistory.length - 1 - newIndex];
+    }
+
+    // Move cursor to end
+    requestAnimationFrame(() => {
+        const len = elements.cmdInput.value.length;
+        elements.cmdInput.setSelectionRange(len, len);
+        updateInputDisplay();
+    });
+}
 
 function updateInputDisplay() {
-    inputDisplay.innerHTML =
-        escapeHtml(cmdInput.value) + '<span class="cursor">█</span>';
+    const val = elements.cmdInput.value;
+    const pos = elements.cmdInput.selectionStart;
+
+    const before = escapeHtml(val.substring(0, pos));
+    const after = escapeHtml(val.substring(pos));
+
+    elements.inputDisplay.innerHTML =
+        before + '<span class="cursor">█</span>' + after;
 }
+
+// ============ BOOT SEQUENCE ============
 
 async function runBootSequence() {
     const sequence = [
@@ -126,25 +190,203 @@ async function runBootSequence() {
     ];
 
     for (const line of sequence) {
-        await new Promise(r => setTimeout(r, line.delay));
+        await sleep(line.delay);
         printLine(line.text, 'dim');
     }
 
-    inputLine.style.display = 'flex';
-    cmdInput.focus();
+    updateInputDisplay();
+    elements.inputLine.style.display = 'flex';
+    elements.cmdInput.focus();
 }
+
+// ============ OUTPUT ============
 
 function printLine(html, className = '') {
     const div = document.createElement('div');
-    div.className = 'line ' + className;
+    div.className = `line ${className}`;
     div.innerHTML = html;
-    outputDiv.appendChild(div);
-    outputDiv.scrollTop = outputDiv.scrollHeight;
+    elements.output.appendChild(div);
+    elements.output.scrollTop = elements.output.scrollHeight;
 }
+
+// ============ COMMAND EXECUTION ============
+
+async function executeCommand(rawCmd) {
+    printLine(`> ${escapeHtml(rawCmd)}`);
+    state.commandHistory.push(rawCmd);
+
+    const [cmd, ...args] = rawCmd.trim().split(/\s+/);
+    const cmdLower = cmd.toLowerCase();
+
+    const commands = {
+        help: () => printLine(
+            'projects  cp      kaggle   research\n' +
+            'resume    contact stats    experience\n' +
+            'theme     clear'
+        ),
+
+        clear: () => elements.output.innerHTML = '',
+
+        theme: () => handleThemeCommand(args),
+
+        contact: () => {
+            printLine(`Email: <a href="mailto:${USER.email}">${USER.email}</a>`);
+            printLine(`GitHub: <a href="https://github.com/${USER.github}" target="_blank">github.com/${USER.github}</a>`);
+            printLine(`LinkedIn: <a href="https://linkedin.com/in/${USER.linkedin}" target="_blank">linkedin.com/in/${USER.linkedin}</a>`);
+            printLine(`Kaggle: <a href="https://kaggle.com/${USER.kaggle}" target="_blank">kaggle.com/${USER.kaggle}</a>`);
+        },
+
+        resume: () => printLine(
+            `<a href="https://linkedin.com/in/${USER.linkedin}" target="_blank">View Resume (LinkedIn)</a>`
+        ),
+
+        experience: () => printLine(
+            `<a href="https://linkedin.com/in/${USER.linkedin}/details/experience/" target="_blank">View Experience</a>`
+        ),
+
+        kaggle: () => printLine(
+            `<a href="https://kaggle.com/${USER.kaggle}" target="_blank">kaggle.com/${USER.kaggle}</a>`
+        ),
+
+        research: () => printLine(
+            `<a href="https://arxiv.org/search/?query=${USER.arxivName}&searchtype=author" target="_blank">View arXiv Publications</a>`
+        ),
+
+        projects: () => fetchGitHubProjects(),
+        cp: () => fetchCodeforcesStats(),
+        stats: () => fetchGitHubStats()
+    };
+
+    const commandFn = commands[cmdLower];
+
+    if (commandFn) {
+        await commandFn();
+    } else {
+        printLine(`Command not found: ${cmd}. Type 'help' for available commands.`);
+    }
+}
+
+// ============ THEME HANDLING ============
+
+function handleThemeCommand(args) {
+    const themeName = args[0]?.toLowerCase();
+
+    if (!themeName) {
+        printLine(`Available themes: ${Object.keys(THEMES).join(', ')}`);
+        return;
+    }
+
+    if (THEMES[themeName]) {
+        applyTheme(themeName);
+        printLine(`Theme set to ${themeName}.`);
+    } else {
+        printLine(`Unknown theme: ${themeName}. Available: ${Object.keys(THEMES).join(', ')}`);
+    }
+}
+
+function applyTheme(name) {
+    const theme = THEMES[name];
+    if (!theme) return;
+
+    const root = document.documentElement;
+    Object.entries(theme).forEach(([key, value]) => {
+        root.style.setProperty(`--${key}`, value);
+    });
+}
+
+// ============ API COMMANDS ============
+
+async function fetchGitHubProjects() {
+    await executeApiCommand(
+        async () => {
+            const res = await fetch(
+                `https://api.github.com/users/${USER.github}/repos?sort=updated&per_page=4`
+            );
+            if (!res.ok) throw new Error('API request failed');
+
+            const repos = await res.json();
+            return repos.map(repo => `
+                <div><span class="accent">${escapeHtml(repo.name)}</span> ★${repo.stargazers_count}</div>
+                <div class="dim">${escapeHtml(repo.description || 'No description')}</div>
+            `).join('');
+        },
+        `curl https://api.github.com/users/${USER.github}/repos`,
+        `https://github.com/${USER.github}`
+    );
+}
+
+async function fetchCodeforcesStats() {
+    await executeApiCommand(
+        async () => {
+            const res = await fetch(
+                `https://codeforces.com/api/user.info?handles=${USER.codeforces}`
+            );
+            const data = await res.json();
+
+            if (data.status !== 'OK') throw new Error('API returned error status');
+
+            const user = data.result[0];
+            return `
+                <div>Handle: <span class="accent">${user.handle}</span></div>
+                <div>Rank: ${user.rank || 'Unrated'}</div>
+                <div>Rating: ${user.rating || 'N/A'} (Max: ${user.maxRating || 'N/A'})</div>
+            `;
+        },
+        `curl https://codeforces.com/api/user.info?handles=${USER.codeforces}`,
+        `https://codeforces.com/profile/${USER.codeforces}`
+    );
+}
+
+async function fetchGitHubStats() {
+    await executeApiCommand(
+        async () => {
+            const res = await fetch(
+                `https://api.github.com/users/${USER.github}/repos?per_page=100`
+            );
+            if (!res.ok) throw new Error('API request failed');
+
+            const repos = await res.json();
+            const langCounts = {};
+
+            repos.forEach(repo => {
+                if (repo.language) {
+                    langCounts[repo.language] = (langCounts[repo.language] || 0) + 1;
+                }
+            });
+
+            const sorted = Object.entries(langCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            return sorted
+                .map(([lang, count]) => `<div><span class="accent">${lang}</span>: ${count} repos</div>`)
+                .join('');
+        },
+        `curl https://api.github.com/users/${USER.github}/repos`,
+        `https://github.com/${USER.github}`
+    );
+}
+
+async function executeApiCommand(apiFn, curlCmd, webUrl) {
+    try {
+        const html = await apiFn();
+        printLine(html);
+    } catch (error) {
+        printLine(`
+            <div class="error-box">
+                API unavailable.<br>
+                <span class="dim">${escapeHtml(curlCmd)}</span><br>
+                <a href="${webUrl}" target="_blank">Open in browser →</a>
+            </div>
+        `);
+    }
+}
+
+// ============ UTILITIES ============
 
 function escapeHtml(text) {
     if (!text) return '';
-    return text
+    return String(text)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -152,145 +394,10 @@ function escapeHtml(text) {
         .replace(/'/g, '&#039;');
 }
 
-async function handleCommand(rawCmd) {
-    const cmdTrimmed = rawCmd.trim();
-    if (!cmdTrimmed) return;
-
-    printLine(`> ${escapeHtml(rawCmd)}`);
-    commandHistory.push(rawCmd);
-
-    const parts = cmdTrimmed.split(/\s+/);
-    const cmd = parts[0].toLowerCase();
-    const args = parts.slice(1);
-
-    switch (cmd) {
-        case 'help':
-            printLine(
-                'projects  cp      kaggle   research\n' +
-                'resume    contact stats    experience\n' +
-                'theme     clear'
-            );
-            break;
-
-        case 'clear':
-            outputDiv.innerHTML = '';
-            break;
-
-        case 'theme': {
-            const themeName = args[0] && args[0].toLowerCase();
-            if (THEMES[themeName]) {
-                applyTheme(themeName);
-                printLine(`Theme set to ${themeName}.`);
-            } else {
-                printLine(`Available themes: ${Object.keys(THEMES).join(', ')}`);
-            }
-            break;
-        }
-
-        case 'contact':
-            printLine(`Email: <a href="mailto:${USER.email}">${USER.email}</a>`);
-            printLine(`<a href="https://github.com/${USER.github}" target="_blank">GitHub</a>`);
-            printLine(`<a href="https://linkedin.com/in/${USER.linkedin}" target="_blank">LinkedIn</a>`);
-            printLine(`<a href="https://kaggle.com/${USER.kaggle}" target="_blank">Kaggle</a>`);
-            break;
-
-        case 'resume':
-            printLine(`<a href="https://linkedin.com/in/${USER.linkedin}" target="_blank">Resume (LinkedIn)</a>`);
-            break;
-
-        case 'experience':
-            printLine(`<a href="https://linkedin.com/in/${USER.linkedin}/details/experience/" target="_blank">Experience</a>`);
-            break;
-
-        case 'kaggle':
-            printLine(`<a href="https://kaggle.com/${USER.kaggle}" target="_blank">kaggle.com/${USER.kaggle}</a>`);
-            break;
-
-        case 'projects':
-            await executeApiCommand(
-                async () => {
-                    const res = await fetch(`https://api.github.com/users/${USER.github}/repos?sort=updated&per_page=4`);
-                    if (!res.ok) throw new Error();
-                    const data = await res.json();
-                    return data.map(repo =>
-                        `<div><span class="accent">${escapeHtml(repo.name)}</span> ★${repo.stargazers_count}</div>
-             <div class="dim">${escapeHtml(repo.description || 'No description')}</div>`
-                    ).join('');
-                },
-                `curl https://api.github.com/users/${USER.github}/repos`,
-                `https://github.com/${USER.github}`
-            );
-            break;
-
-        case 'cp':
-            await executeApiCommand(
-                async () => {
-                    const res = await fetch(`https://codeforces.com/api/user.info?handles=${USER.codeforces}`);
-                    const data = await res.json();
-                    if (data.status !== 'OK') throw new Error();
-                    const u = data.result[0];
-                    return `
-            <div>Handle: ${u.handle}</div>
-            <div>Rank: ${u.rank || 'Unrated'}</div>
-            <div>Rating: ${u.rating || 'N/A'} (Max ${u.maxRating || 'N/A'})</div>
-          `;
-                },
-                `curl https://codeforces.com/api/user.info?handles=${USER.codeforces}`,
-                `https://codeforces.com/profile/${USER.codeforces}`
-            );
-            break;
-
-        case 'stats':
-            await executeApiCommand(
-                async () => {
-                    const res = await fetch(`https://api.github.com/users/${USER.github}/repos?per_page=100`);
-                    if (!res.ok) throw new Error();
-                    const repos = await res.json();
-                    const counts = {};
-                    repos.forEach(r => r.language && (counts[r.language] = (counts[r.language] || 0) + 1));
-                    return Object.entries(counts)
-                        .slice(0, 5)
-                        .map(([k, v]) => `<div>${k}: ${v}</div>`)
-                        .join('');
-                },
-                `curl https://api.github.com/users/${USER.github}/repos`,
-                `https://github.com/${USER.github}`
-            );
-            break;
-
-        case 'research':
-            printLine(`<a href="https://arxiv.org/search/?query=${USER.arxivName}&searchtype=author" target="_blank">arXiv</a>`);
-            break;
-
-        default:
-            printLine(`Command not found: ${cmd}. Type 'help'.`);
-    }
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function executeApiCommand(apiFn, curlCmd, webUrl) {
-    try {
-        const html = await apiFn();
-        printLine(html);
-    } catch {
-        printLine(
-            `<div class="error-box">
-        API unavailable.<br>
-        <span class="dim">${escapeHtml(curlCmd)}</span><br>
-        <a href="${webUrl}" target="_blank">Open in browser</a>
-      </div>`
-        );
-    }
-}
-
-function applyTheme(name) {
-    const t = THEMES[name];
-    if (!t) return;
-    const root = document.documentElement;
-    root.style.setProperty('--bg', t.bg);
-    root.style.setProperty('--fg', t.fg);
-    root.style.setProperty('--cursor', t.cursor);
-    root.style.setProperty('--accent', t.accent);
-    root.style.setProperty('--dim', t.dim);
-}
+// ============ START ============
 
 init();
