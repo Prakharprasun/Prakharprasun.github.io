@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prakhar Prasun — Terminal</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<div
+        class="crt-container"
+        id="crt-container"
+        style="opacity: 0; transition: opacity 0.5s;"
+>
+    <img
+            src="CRT.png"
+            alt="CRT Monitor"
+            class="crt-image"
+            id="crt-image"
+    >
+
+    <div class="terminal-screen" id="terminal-screen">
+        <div class="terminal-output" id="output"></div>
+
+        <div class="input-line" id="input-line" style="display: none;">
+            <span class="prompt">&gt;</span>
+
+            <div class="input-wrapper">
+          <span class="input-display" id="input-display">
+            <span class="cursor">█</span>
+          </span>
+
+                <input
+                        type="text"
+                        class="hidden-input"
+                        id="cmd-input"
+                        autocomplete="off"
+                        spellcheck="false"
+                >
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="./script.js"></script>
+</body>
+</html>
