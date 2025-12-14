@@ -50,7 +50,10 @@ const state = {
 };
 
 // Mobile detection and IME flags
-const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const IS_MOBILE =
+    window.matchMedia('(max-width: 768px)').matches ||
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 let IS_COMPOSING = false;
 
 function init() {
@@ -260,18 +263,31 @@ function updateInputDisplay() {
         before + '<span class="cursor">█</span>' + after;
 }
 
+function printMobileDisclaimer() {
+    printLine(
+        " * Best experienced on desktop (macOS / Linux / Windows). Mobile version is limited.",
+        "dim"
+    );
+}
+
 async function runBootSequence() {
     const sequence = [
         { text: '[boot] Initializing system...', delay: 500 },
         { text: '[boot] Loading modules...', delay: 500 },
         { text: '[boot] Ready.', delay: 500 },
-        { text: "Type 'help' for available commands.", delay: 0 }
     ];
 
     for (const line of sequence) {
         await sleep(line.delay);
         printLine(line.text, 'dim');
     }
+
+    // Mobile-only disclaimer
+    if (IS_MOBILE) {
+        printMobileDisclaimer();
+    }
+
+    printLine("Type 'help' for available commands.", 'dim');
 
     updateInputDisplay();
     elements.inputLine.style.display = 'block';

@@ -53,7 +53,12 @@ a {
 
 .terminal-screen {
     position: absolute;
+
+    /* JS will set dimensions and position dynamically */
     box-sizing: border-box;
+
+    /* Force LTR direction for terminal */
+    direction: ltr;
 
     background: var(--bg);
     color: var(--fg);
@@ -75,6 +80,7 @@ a {
     text-shadow: 0 0 0.6px rgba(0,0,0,0.25);
 }
 
+/* LCD */
 .terminal-screen::before {
     content: "";
     position: absolute;
@@ -122,22 +128,35 @@ a {
     flex: 1;
 }
 
+/* Typed text + cursor live in same flow */
 .input-display {
     display: inline;
     white-space: pre;
 }
 
+/* Cursor behaves like a glyph, not a box */
 .cursor {
     color: var(--cursor);
     animation: blink 1.2s steps(1) infinite;
 }
 
 .hidden-input {
-    position: absolute;
+    position: fixed;
+
+    /* MUST have real size for Android IME */
+    width: 1px;
+    height: 1.2em;
+
+    /* Offscreen, but real */
+    left: -1000px;
+    top: 0;
+
     opacity: 0;
     pointer-events: none;
-    height: 0;
-    width: 0;
+
+    /* Prevent RTL / IME heuristics */
+    direction: ltr;
+    text-align: left;
 }
 
 @keyframes blink {
