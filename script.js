@@ -49,6 +49,10 @@ const state = {
     isLoaded: false
 };
 
+// Mobile detection and IME flags
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+let IS_COMPOSING = false;
+
 function init() {
     const startApp = () => {
         if (state.isLoaded) return;
@@ -91,7 +95,6 @@ function init() {
             startApp();
         };
     }
-
 
     setupEventListeners();
 
@@ -151,6 +154,16 @@ function positionTerminal() {
 
 function setupEventListeners() {
     elements.screen.addEventListener('click', () => elements.cmdInput.focus());
+
+    // IME composition guards (Android fix)
+    elements.cmdInput.addEventListener('compositionstart', () => {
+        IS_COMPOSING = true;
+    });
+
+    elements.cmdInput.addEventListener('compositionend', () => {
+        IS_COMPOSING = false;
+        requestAnimationFrame(updateInputDisplay);
+    });
 
     // Update display on ANY change
     elements.cmdInput.addEventListener('input', () => {
@@ -225,8 +238,20 @@ function navigateHistory(direction) {
 }
 
 function updateInputDisplay() {
+    // Don't update during IME composition (Android keyboard)
+    if (IS_COMPOSING) return;
+
     const val = elements.cmdInput.value;
-    const pos = elements.cmdInput.selectionStart;
+
+    if (IS_MOBILE) {
+        // Mobile: cursor always at end (NO selection logic)
+        elements.inputDisplay.innerHTML =
+            escapeHtml(val) + '<span class="cursor">█</span>';
+        return;
+    }
+
+    // Desktop: full caret tracking
+    const pos = elements.cmdInput.selectionStart ?? val.length;
 
     const before = escapeHtml(val.substring(0, pos));
     const after = escapeHtml(val.substring(pos));
