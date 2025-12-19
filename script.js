@@ -50,10 +50,7 @@ const state = {
 };
 
 // Mobile detection and IME flags
-const IS_MOBILE =
-    window.matchMedia('(max-width: 768px)').matches ||
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
+const IS_MOBILE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 let IS_COMPOSING = false;
 
 function init() {
@@ -156,6 +153,16 @@ function positionTerminal() {
 }
 
 function setupEventListeners() {
+    document.addEventListener('keydown', (e) => {
+        if (ACTIVE_MODE !== 'music') return;
+
+        // ONLY intercept ESC
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            ejectCartridge();
+        }
+    });
+
     elements.screen.addEventListener('click', () => elements.cmdInput.focus());
 
     // IME composition guards (Android fix)
@@ -188,7 +195,17 @@ function setupEventListeners() {
     });
 }
 
+let ACTIVE_MODE = 'terminal'; // 'terminal' | 'music'
+let SCREEN_BACKUP = null;
+
 function handleKeyDown(e) {
+    // ESC ejects cartridge if in music mode
+    if (e.key === 'Escape' && ACTIVE_MODE === 'music') {
+        e.preventDefault();
+        ejectCartridge();
+        return;
+    }
+
     switch (e.key) {
         case 'Enter':
             handleEnter();
@@ -207,6 +224,7 @@ function handleKeyDown(e) {
 function handleEnter() {
     const cmd = elements.cmdInput.value.trim();
     if (!cmd) return;
+    if (ACTIVE_MODE === 'music') return;
 
     executeCommand(cmd);
     elements.cmdInput.value = '';
@@ -263,31 +281,18 @@ function updateInputDisplay() {
         before + '<span class="cursor">█</span>' + after;
 }
 
-function printMobileDisclaimer() {
-    printLine(
-        " * Best experienced on desktop (macOS / Linux / Windows). Mobile version is limited.",
-        "dim"
-    );
-}
-
 async function runBootSequence() {
     const sequence = [
         { text: '[boot] Initializing system...', delay: 500 },
         { text: '[boot] Loading modules...', delay: 500 },
         { text: '[boot] Ready.', delay: 500 },
+        { text: "Type 'help' for available commands.", delay: 0 }
     ];
 
     for (const line of sequence) {
         await sleep(line.delay);
         printLine(line.text, 'dim');
     }
-
-    // Mobile-only disclaimer
-    if (IS_MOBILE) {
-        printMobileDisclaimer();
-    }
-
-    printLine("Type 'help' for available commands.", 'dim');
 
     updateInputDisplay();
     elements.inputLine.style.display = 'block';
@@ -302,6 +307,97 @@ function printLine(html, className = '') {
     elements.output.scrollTop = elements.output.scrollHeight;
 }
 
+// CARTRIDGE SYSTEM
+
+function mountMusicCartridge() {
+    if (ACTIVE_MODE === 'music') return;
+
+    ACTIVE_MODE = 'music';
+
+    // Save current terminal screen
+    SCREEN_BACKUP = elements.screen.innerHTML;
+
+    elements.screen.innerHTML = `
+        <div style="
+            width:100%;
+            height:100%;
+            display:flex;
+            flex-direction:column;
+            background:var(--bg);
+        ">
+            <div style="
+                font-size:0.8em;
+                padding-bottom:4px;
+                color:var(--dim);
+            ">
+                [media] cartridge mounted (AUDIO I/O ENABLED) — ESC to eject
+            </div>
+            <iframe
+                src="https://www.youtube.com/embed/-bC4iak3kxg?autoplay=0&rel=0&modestbranding=1&playsinline=1"
+                style="
+                    flex:1;
+                    border:none;
+                    background:#000;
+                "
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+        </div>
+    `;
+    elements.cmdInput.blur();
+    elements.cmdInput.setSelectionRange(0, 0);
+}
+
+function ejectCartridge() {
+    if (ACTIVE_MODE !== 'music') return;
+
+    ACTIVE_MODE = 'terminal';
+    elements.screen.innerHTML = SCREEN_BACKUP;
+
+    requestAnimationFrame(() => {
+        // RE-QUERY DOM (old references are dead)
+        elements.output = document.getElementById('output');
+        elements.inputLine = document.getElementById('input-line');
+        elements.inputDisplay = document.getElementById('input-display');
+        elements.cmdInput = document.getElementById('cmd-input');
+
+        // RE-BIND input listeners
+        elements.cmdInput.addEventListener('compositionstart', () => {
+            IS_COMPOSING = true;
+        });
+
+        elements.cmdInput.addEventListener('compositionend', () => {
+            IS_COMPOSING = false;
+            requestAnimationFrame(updateInputDisplay);
+        });
+
+        elements.cmdInput.addEventListener('input', () => {
+            requestAnimationFrame(updateInputDisplay);
+        });
+
+        elements.cmdInput.addEventListener('click', () => {
+            requestAnimationFrame(updateInputDisplay);
+        });
+
+        elements.cmdInput.addEventListener('keydown', handleKeyDown);
+
+        elements.cmdInput.addEventListener('keyup', () => {
+            requestAnimationFrame(updateInputDisplay);
+        });
+
+        elements.cmdInput.addEventListener('select', () => {
+            requestAnimationFrame(updateInputDisplay);
+        });
+
+        // Restore focus + caret
+        elements.cmdInput.focus({ preventScroll: true });
+        const len = elements.cmdInput.value.length;
+        elements.cmdInput.setSelectionRange(len, len);
+
+        updateInputDisplay();
+    });
+}
+
 async function executeCommand(rawCmd) {
     printLine(`> ${escapeHtml(rawCmd)}`);
     state.commandHistory.push(rawCmd);
@@ -311,14 +407,27 @@ async function executeCommand(rawCmd) {
 
     const commands = {
         help: () => printLine(
-            'projects  cp      kaggle   research\n' +
-            'resume    contact stats    experience\n' +
-            'theme     clear'
+            'Core commands:\n' +
+            '  projects   cp        stats     research\n' +
+            '  resume     contact   kaggle    experience\n\n' +
+            'System / demo:\n' +
+            '  theme      clear     music'
         ),
 
         clear: () => elements.output.innerHTML = '',
 
         theme: () => handleThemeCommand(args),
+
+        music: () => {
+            if (ACTIVE_MODE === 'music') {
+                printLine('[media] cartridge already mounted.', 'dim');
+                return;
+            }
+            printLine('[media] mounting cartridge...');
+            mountMusicCartridge();
+        },
+
+        eject: () => ejectCartridge(),
 
         contact: () => {
             printLine(`Email: <a href="mailto:${USER.email}">${USER.email}</a>`);

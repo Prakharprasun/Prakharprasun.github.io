@@ -1,3 +1,9 @@
+@font-face {
+    font-family: "EarlyGameBoy";
+    src: url("/early-gameboy.ttf") format("truetype");
+    font-display: swap;
+}
+
 :root {
     --bg: #485915;
     --fg: #0b0f06;
@@ -63,9 +69,10 @@ a {
     background: var(--bg);
     color: var(--fg);
 
-    line-height: 1.45;
-    letter-spacing: 0.35px;
-    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.05em;
+    font-family: "EarlyGameBoy", monospace;
+    font-weight: normal;
 
     display: flex;
     flex-direction: column;
