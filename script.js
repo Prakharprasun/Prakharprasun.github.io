@@ -414,6 +414,23 @@ async function executeCommand(rawCmd) {
             '  theme      clear     music'
         ),
 
+        sudo: () => {
+            const sub = args.join(' ').toLowerCase();
+
+            if (sub.startsWith('rm -rf')) {
+                printLine(
+                    '<span class="accent">nice try.</span><br>' +
+                    '<span class="dim">filesystem is mounted read-only.</span>'
+                );
+            } else {
+                printLine(
+                    `<span class="dim">sudo:</span> ${escapeHtml(sub || '[no command]')}<br>` +
+                    '<span class="dim">Permission denied: \'visitor\' is not in the sudoers file</span>'
+                );
+            }
+        },
+
+
         clear: () => elements.output.innerHTML = '',
 
         theme: () => handleThemeCommand(args),
