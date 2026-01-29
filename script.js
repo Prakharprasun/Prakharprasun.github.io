@@ -1,6 +1,6 @@
 const USER = {
     github: 'Prakharprasun',
-    codeforces: 'Prakharprasun',
+    codeforces: 'wolflow',
     kaggle: 'Prakharprasun',
     linkedin: 'prakhar-prasun',
     email: 'prakhar.prasun@proton.me',
@@ -465,7 +465,7 @@ function catCommand(args) {
     const files = {
         resume: () => {
             printLine('<span class="accent">═══ RESUME ═══</span>');
-            printLine('Software Engineer | Researcher | Competitive Programmer');
+            printLine('Software Engineer, Researcher, Competitive Programmer');
             printLine(`\n<a href="https://linkedin.com/in/${USER.linkedin}" target="_blank" rel="noopener noreferrer">→ Full resume on LinkedIn</a>`);
         },
         research: () => {
