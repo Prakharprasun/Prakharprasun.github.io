@@ -1,37 +1,70 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Prakhar Prasun Terminal</title>
-    <link rel="stylesheet" href="./styles.css">
-    <link rel="icon" href="favicon.ico">
-</head>
-<body>
-<div class="crt-container" id="crt-container" style="opacity: 0; transition: opacity 0.5s;">
-    <div class="crt-wrapper">
-        <img src="CRT.png" alt="CRT Monitor" class="crt-image" id="crt-image">
+    <meta
+      name="description"
+      content="Prakhar Prasun's terminal-style portfolio. Software engineer, researcher, and competitive programmer."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="icon" href="favicon.ico" />
+  </head>
+  <body>
+    <div
+      class="crt-container"
+      id="crt-container"
+      style="opacity: 0; transition: opacity 0.5s"
+    >
+      <div class="crt-wrapper">
+        <img src="CRT.png" alt="CRT Monitor" class="crt-image" id="crt-image" />
 
         <div class="terminal-screen" id="terminal-screen">
+          <!-- Terminal UI (persistent) -->
+          <div id="terminal-container">
             <div class="terminal-output" id="output"></div>
 
-            <div class="input-line" id="input-line" style="display: none;">
-                <span class="prompt">&gt; </span><span class="input-display" id="input-display"></span>
-                <input
-                        type="text"
-                        class="hidden-input"
-                        id="cmd-input"
-                        autocomplete="off"
-                        autocorrect="off"
-                        autocapitalize="off"
-                        spellcheck="false"
-                        inputmode="text"
-                        dir="ltr">
+            <div class="input-line" id="input-line" style="display: none">
+              <span class="prompt">&gt; </span
+              ><span class="input-display" id="input-display"></span>
+              <input
+                type="text"
+                class="hidden-input"
+                id="cmd-input"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
+                inputmode="text"
+                dir="ltr"
+              />
             </div>
-        </div>
-    </div>
-</div>
+          </div>
 
-<script src="./script.js"></script>
-</body>
+          <!-- Music UI (hidden by default) -->
+          <div id="music-container" style="display: none">
+            <div class="music-header">
+              [media] cartridge mounted (AUDIO I/O ENABLED) — ESC to eject
+            </div>
+            <iframe
+              id="music-iframe"
+              src=""
+              allow="
+                accelerometer;
+                clipboard-write;
+                encrypted-media;
+                gyroscope;
+                picture-in-picture;
+              "
+              allowfullscreen
+            >
+            </iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
 </html>
